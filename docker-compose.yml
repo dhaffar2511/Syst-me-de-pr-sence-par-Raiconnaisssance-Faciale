@@ -1,0 +1,86 @@
+# Configuration Docker Compose
+# 3 containers : Frontend, Backend, MongoDB
+
+version: '3.8'
+
+services:
+  # ==================== BASE DE DONNÉES ====================
+  mongodb:
+    image: mongo:7.0
+    container_name: presence_mongodb
+    restart: always
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin123
+      MONGO_INITDB_DATABASE: systeme_presence
+    volumes:
+      - mongodb_data:/data/db
+      - mongodb_config:/data/configdb
+      - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+    networks:
+      - presence_network
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ==================== BACKEND (API Python) ====================
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: presence_backend
+    restart: always
+    ports:
+      - "5000:5000"
+    environment:
+      - MONGODB_URI=mongodb://admin:admin123@mongodb:27017/systeme_presence?authSource=admin
+      - DATABASE_NAME=systeme_presence
+      - FLASK_ENV=development
+      - FLASK_APP=api.py
+    volumes:
+      - ./backend:/app
+      - ./encodages:/app/encodages
+      - ./rapports:/app/rapports
+      - ./logs:/app/logs
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - presence_network
+    command: python api.py
+
+  # ==================== FRONTEND (Web Interface) ====================
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: presence_frontend
+    restart: always
+    ports:
+      - "3000:80"
+    environment:
+      - REACT_APP_API_URL=http://localhost:5000
+      - BACKEND_URL=http://backend:5000
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    networks:
+      - presence_network
+
+# ==================== VOLUMES ====================
+volumes:
+  mongodb_data:
+    driver: local
+  mongodb_config:
+    driver: local
+
+# ==================== NETWORK ====================
+networks:
+  presence_network:
+    driver: bridge

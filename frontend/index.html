@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Système de Présence - Reconnaissance Faciale</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo-container">
+                <img src="logo isimm.png" alt="Logo ISIMM" class="logo">
+            </div>
+            <div class="header-text">
+                <h1>Institut Supérieur d'Informatique et de Mathématiques de Monastir</h1>
+                <h2 class="system-title">🎓 Système de Présence par Reconnaissance Faciale</h2>
+            </div>
+        </header>
+
+        <nav class="tabs">
+            <button class="tab-btn active" onclick="showTab('etudiants', event)">👤 Étudiants</button>
+            <button class="tab-btn" onclick="showTab('cours', event)">📚 Cours</button>
+            <button class="tab-btn" onclick="showTab('presence', event)">✅ Présence</button>
+            <button class="tab-btn" onclick="showTab('rapports', event)">📊 Rapports</button>
+        </nav>
+
+        <!-- Onglet Étudiants -->
+        <div id="etudiants" class="tab-content active">
+            <div class="card">
+                <h2>➕ Ajouter un Étudiant</h2>
+                <form id="addStudentForm" class="form">
+                    <div class="form-group">
+                        <label for="studentId">ID Étudiant *</label>
+                        <input type="text" id="studentId" placeholder="Ex: ETU001" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="studentName">Nom Complet *</label>
+                        <input type="text" id="studentName" placeholder="Ex: Dhaffar Nourhene" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="studentEmail">Email</label>
+                        <input type="email" id="studentEmail" placeholder="Ex: dhaffar@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="studentPhoto">Photo *</label>
+                        <input type="file" id="studentPhoto" accept="image/*" required>
+                        <div id="photoPreview" class="photo-preview"></div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Ajouter l'Étudiant</button>
+                </form>
+            </div>
+
+            <div class="card">
+                <h2>📋 Liste des Étudiants</h2>
+                <div class="search-box">
+                    <input type="text" id="searchStudent" placeholder="🔍 Rechercher un étudiant...">
+                </div>
+                <div id="studentsList" class="list"></div>
+            </div>
+        </div>
+
+        <!-- Onglet Cours -->
+        <div id="cours" class="tab-content">
+            <div class="card">
+                <h2>➕ Créer un Cours</h2>
+                <form id="addCourseForm" class="form">
+                    <div class="form-group">
+                        <label for="courseId">Code Cours *</label>
+                        <input type="text" id="courseId" placeholder="Ex: INFO101" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="courseName">Nom du Cours *</label>
+                        <input type="text" id="courseName" placeholder="Ex: Programmation Python" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="courseProf">Professeur</label>
+                        <input type="text" id="courseProf" placeholder="Ex: Dr. Mohamed">
+                    </div>
+                    <div class="form-group">
+                        <label for="courseProfEmail">Email du Professeur *</label>
+                        <input type="email" id="courseProfEmail" placeholder="Ex: mohamed@isimm.u-monastir.tn" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Créer le Cours</button>
+                </form>
+            </div>
+
+            <div class="card">
+                <h2>📚 Liste des Cours</h2>
+                <div id="coursesList" class="list"></div>
+            </div>
+        </div>
+
+        <!-- Onglet Présence -->
+        <div id="presence" class="tab-content">
+            <!-- Capture Webcam en Direct -->
+            <div class="card">
+                <h2>📹 Prise de Présence en Temps Réel</h2>
+                <p style="color: #666; margin-bottom: 15px;">
+                    🎥 Chaque étudiant passe devant la webcam, son nom s'affiche automatiquement et il est ajouté à la liste de présence
+                </p>
+                
+                <div class="form-group">
+                    <label for="webcamCourseId">Code du Cours *</label>
+                    <select id="webcamCourseId" required>
+                        <option value="">-- Sélectionner un cours --</option>
+                    </select>
+                </div>
+                
+                <div class="webcam-container" style="margin: 20px 0; text-align: center;">
+                    <video id="webcam" autoplay playsinline style="width:100%; max-width:640px; border-radius:10px; background:#000; display:none;"></video>
+                    <canvas id="webcamCanvas" style="display:none;"></canvas>
+                    <div id="webcamPlaceholder" style="width:100%; max-width:640px; height:480px; background:#f0f0f0; border-radius:10px; display:flex; align-items:center; justify-content:center; margin:0 auto;">
+                        <p style="color:#999;">📹 La webcam s'affichera ici</p>
+                    </div>
+                </div>
+                
+                <div class="button-group" style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin:15px 0;">
+                    <button id="startWebcam" class="btn btn-primary">
+                        🎥 Démarrer la Capture
+                    </button>
+                    <button id="captureNextBtn" class="btn btn-success" style="display:none; font-size:1.1em; padding:12px 25px;">
+                        👤 Capturer Étudiant
+                    </button>
+                    <button id="nextStudentBtn" class="btn btn-warning" style="display:none;">
+                        ➡️ Étudiant Suivant
+                    </button>
+                    <button id="stopWebcam" class="btn btn-danger" style="display:none;">
+                        ⏹️ Terminer et Enregistrer
+                    </button>
+                </div>
+                
+                <!-- Zone d'affichage en temps réel -->
+                <div id="liveRecognition" style="display:none; margin-top: 20px;">
+                    <div id="currentRecognition" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 10px; color: white; text-align: center; margin-bottom: 20px;">
+                        <h4 style="margin: 0 0 10px 0;">Visage Détecté:</h4>
+                        <h2 id="currentRecognizedName" style="margin: 0; font-size: 2.5em;">En attente...</h2>
+                        <p id="recognitionStatus" style="margin: 10px 0 0 0; font-size: 1.1em; opacity: 0.9;">Placez-vous devant la webcam</p>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div style="background: #d4edda; padding: 15px; border-radius: 10px; border: 2px solid #28a745;">
+                            <h4 style="margin: 0 0 10px 0; color: #155724;">✅ Présents (<span id="livePresentsCount">0</span>)</h4>
+                            <div id="livePresents" style="max-height: 200px; overflow-y: auto;"></div>
+                        </div>
+                        
+                        <div style="background: #f8d7da; padding: 15px; border-radius: 10px; border: 2px solid #dc3545;">
+                            <h4 style="margin: 0 0 10px 0; color: #721c24;">❌ Absents (<span id="liveAbsentsCount">0</span>)</h4>
+                            <div id="liveAbsents" style="max-height: 200px; overflow-y: auto;"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="webcamStatus" style="margin-top: 20px;"></div>
+            </div>
+
+            <!-- Upload Vidéo -->
+            <div class="card">
+                <h2>📹 Upload Vidéo</h2>
+                <p style="color: #666; margin-bottom: 15px;">
+                    📁 Enregistrez une vidéo et uploadez-la pour l'analyse
+                </p>
+                <form id="takeAttendanceForm" class="form">
+                    <div class="form-group">
+                        <label for="attendanceCourse">Sélectionner le Cours *</label>
+                        <select id="attendanceCourse" required>
+                            <option value="">-- Choisir un cours --</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="attendanceVideo">Vidéo de la Classe *</label>
+                        <input type="file" id="attendanceVideo" accept="video/*" required>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="sendEmailToProf" checked>
+                            Envoyer la liste de présence par email au professeur
+                        </label>
+                    </div>
+                    <button type="submit" class="btn btn-success">Analyser la Vidéo</button>
+                </form>
+                <div id="attendanceResult" class="result-box"></div>
+            </div>
+
+            <div class="card">
+                <h2>📅 Historique des Présences</h2>
+                <div id="attendanceHistory" class="list"></div>
+            </div>
+        </div>
+
+        <!-- Onglet Rapports -->
+        <div id="rapports" class="tab-content">
+            <div class="card">
+                <h2>📊 Générer un Rapport</h2>
+                <form id="generateReportForm" class="form">
+                    <div class="form-group">
+                        <label for="reportCourse">Cours</label>
+                        <select id="reportCourse">
+                            <option value="">-- Tous les cours --</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="reportStartDate">Date de Début</label>
+                        <input type="date" id="reportStartDate">
+                    </div>
+                    <div class="form-group">
+                        <label for="reportEndDate">Date de Fin</label>
+                        <input type="date" id="reportEndDate">
+                    </div>
+                    <button type="submit" class="btn btn-success">📥 Télécharger le Rapport Excel</button>
+                </form>
+            </div>
+
+            <div class="card">
+                <h2>📈 Statistiques</h2>
+                <div id="statistics" class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalStudents">-</div>
+                        <div class="stat-label">Étudiants</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalCourses">-</div>
+                        <div class="stat-label">Cours</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalAttendances">-</div>
+                        <div class="stat-label">Présences</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="avgAttendance">-</div>
+                        <div class="stat-label">Taux Moyen</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="notification" class="notification"></div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

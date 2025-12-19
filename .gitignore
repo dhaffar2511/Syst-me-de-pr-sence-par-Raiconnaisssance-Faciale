@@ -1,0 +1,65 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+env/
+env310/
+.venv/
+
+# Logs
+*.log
+backend_logs.txt
+logs/
+
+# Encodings and photos (sensitive / large)
+encodages/
+backend/encodages/
+backend/photos/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Python packaging
+*.egg-info/
+build/
+dist/
+
+# Node (if any)
+node_modules/
+
+# Docker
+docker-compose.override.yml
+
+# Secrets
+.env
+*.pem
+*.key
+
+# Test outputs
+.coverage
+htmlcov/
+
+# Misc
+*.sqlite3
+*.db
+
+# Ignore generated reports
+rapports/
+
+# Ignore temporary files
+*.tmp
+*~
+
+# Keep README and scripts
+!README.md
+!start_all.sh
+!DEMARRAGE.sh
